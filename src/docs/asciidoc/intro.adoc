@@ -1,0 +1,73 @@
+= Curso Vintec - IES
+Isidoro Treviño <isidoro.trevino@vintec.mx>
+2018-06-02
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:deckjs_transition: fade
+:navigation:
+:menu:
+:goto:
+
+== Indice
+
+* Temario
+* link:clase1.html[Fundamentos de Linux]
+* link:clase2.html[Redes y Linux]
+* link:clase3.html[OpenSSL]
+* link:clase4.html[Ansible]
+
+
+== Introducción
+
+* Crear una Fábrica de Software Formal
+** Segmentada en áreas bien definidas
+*** Desarrollo
+*** Implementación en sitio
+*** Infraestructura y DevOps
+** Mejores prácticas
+** Metodología estándar
+** Mejorar la comunicación
+** Evitar caer en los mismos errores consistentemente
+
+== Temario Primera Fase
+
+ * Fundamentos de Linux / Posix
+ ** Uso y manejo de scripts en shell
+ ** Condiciones y loops
+ ** Iteración de archivos (CSV y por línea)
+ ** Parseo de texto con awk y sed
+ ** Scripts sencillos en python
+ 
+== Temario Primera Fase (Cont.)
+
+ * Diagnósticos y comandos para manejo de redes
+ ** Revisión de puertos
+ ** Diagnóstico de DNS
+ ** Iptables
+ * Certificados
+ ** OpenSSL
+ ** JDK Keytool
+ ** Lets Encrypt
+ 
+== Temario Primera Fase (Cont.)
+
+ * Preparación de ambiente
+ ** Uso de LVM
+ ** Aspectos Clave del kernel
+ * Automatización de la configuración
+ ** Ansible
+ 
+== Temario Primera Fase (Cont.)
+ 
+ * Contenedores
+ ** Fundamentos teóricos
+ ** Fundamentos de Docker
+ *** Instalación
+ *** Configuración y Tuning
+ *** Manejo básico
+ ** Creación y manejo de Imágenes
+ ** Docker Swarm
+  
+ 

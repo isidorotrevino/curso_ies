@@ -1,0 +1,58 @@
+= Ansible
+Isidoro Treviño <isidoro.trevino@vintec.mx>
+2018-07-07
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:deckjs_transition: fade
+:navigation:
+:menu:
+:goto:
+
+== Introducción
+
+* Plataforma de administración y configuración de equipo
+* Creado por RedHat
+* Funciona a través de SSH
+* Desarrollado en Python
+* En general no requiere configuración o librerias instaladas en el servidor destino (host)
+** "Agent-less"
+** Configuración por archivos YAML
+** Comunicación mediante mensajes JSON
+* La maquina control debe ser forzosamente linux
+
+== Instalación
+
+* Ambiente Ubuntu
+
+[source,python]  
+----
+$ sudo apt-get update
+$ sudo apt-get install software-properties-common
+$ sudo apt-add-repository ppa:ansible/ansible
+$ sudo apt-get update
+$ sudo apt-get install ansible
+----
+
+== Configuración 
+
+* **ansible.cfg** -> Configuración de funcionamiento de Ansible
+** **inventory** -> Ubicación del archivo de inventario de servidores
+** **library** -> Ubicación de la distribución de ansible
+ 
+* **ansible_hosts** -> Inventario de servidores a configurar
+
+[source,python]  
+----
+[main_server]<1>
+192.168.0.42 <2> ansible_ssh_user=vintec <3>
+
+[main_server:vars]<4>
+ansible_python_interpreter=/usr/bin/python3
+docker_hostname=vintecdyne2
+----
+<1> Nombre del grupo
+<2> IP o nombre del host
+<3> Nombre del usuario en el host (opcional)
+<4> Variables específicas para el grupo de hosts (opcional)

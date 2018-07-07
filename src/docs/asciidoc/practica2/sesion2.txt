@@ -1,0 +1,158 @@
+SESION 2
+
+BREVES DE UBUNTU
+- apt-add-repository ppa:ansible/ansible
+
+
+
+DIAGNOSTICOS DE RED
+-- Conexión y ruteo
+- ping
+- traceroute
+-- Puertos
+- telnet
+- curl -f
+- bash -c "cat < /dev/null > /dev/tcp/$host/$port"
+- nc -zv $host $port
+- nmap -sS ip
+-- Diagnostico de DNS
+- nslookup
+- dig
+
+IPTABLES
+iptables -t nat -I PREROUTING --src 0/0 --dst 127.0.0.1 -p tcp --dport 25 -j REDIRECT --to-ports 4465
+iptables -t nat -I OUTPUT --src 0/0 --dst 127.0.0.1 -p tcp --dport 25 -j REDIRECT --to-ports 4465
+
+-Listar
+iptables -S
+iptables -S TCP
+iptables -L
+iptables -t nat -L -n -v
+-Eliminar
+iptables -D INPUT -m conntrack --ctstate INVALID -j DROP
+
+
+
+CERTIFICADOS Y SEGURIDAD
+#SSH
+ssh-keygen
+como editar .ssh/config
+ruteo de puertos
+
+#OPENSSL
+CA KEY
+openssl genrsa -out key.pem 2048
+CA EXTENSIONS
+
+CA CERT 
+openssl req -new -x509 -days 3650 -config ca.ext -key ca-key.pem -sha256 -extensions v3_req -out ca.pem -passin pass:{{docker_passphrase}}
+
+SERVER KEY
+openssl genrsa -out key.pem 2048
+SERVER CSR
+openssl req -new -sha256 -key server.key -out domain.com.csr 
+SERVER EXTENSIONS
+openssl x509 -req -days 3650 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem \
+     -CAcreateserial -extensions v3_req -extfile server.ext  -out server-cert.pem -passin pass:{{docker_passphrase}}
+
+
+SERVER CERT
+openssl x509 -req -days 3650 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem \
+     -CAcreateserial -extensions v3_req -extfile server.ext  -out server-cert.pem -passin pass:{{docker_passphrase}}
+
+REVISAR CONTENIDO
+openssl x509 -inform der -in cerfile.cer -noout -text
+
+openssl req -key private/www.vintec.mx.key.pem -new -sha256 -out csr/new.vintec.mx.csr.pem -reqexts SAN -config <(cat openssl.cnf <(printf "\n[SAN]\nsubjectAltName=DNS:vintec.mx,DNS:mail.vintec.mx,IP:127.0.0.1,IP:192.168.0.210"))
+
+#KEYSTORE
+Generar par de llaves
+keytool -genkeypair -keystore src/main/security/ttemsaKeystore.p12 -dname "CN=ttemsa, OU=Unknown, O=Unknown, L=Unknown, ST=Unknown, C=Unknown" -keypass ttemsa5511 -storepass ttemsa5511 -storetype PKCS12 -keyalg RSA -alias ttemsa -ext SAN=ip:127.0.0.1,ip:192.168.0.154,dns:ttemsapp.noip.me,dns:ttemsacas,dns:ttemsafrontend.com,dns:ttemsacas.com
+
+Exportar par
+keytool -exportcert -alias ttemsa -file src/main/security/ttemsa.crt -keystore src/main/security/ttemsaKeystore.p12
+
+
+# Importar certificado a JDK (el pass es changeit)
+#keytool -import -alias ttemsa -file src/main/security/ttemsa.crt -keystore $JAVA_HOME/jre/lib/security/cacerts
+
+# Para eliminar alias del keystore
+# keytool -delete -alias ttemsa -keystore $JAVA_HOME/jre/lib/security/cacerts
+
+#OTro comando (para referencia)
+#keytool -genkey -alias tomcat -storetype PKCS12 -keyalg RSA -keysize 2048 -keystore keystore.p12 -validity 3650
+
+
+Extraer certificados para uso con openssl
+openssl pkcs12 -in ttemsaKeystore.p12 -nocerts -out ttemsakey.pem
+openssl pkcs12 -in ttemsaKeystore.p12 -clcerts -out certs.pem
+openssl pkcs12 -in ttemsaKeystore.p12 -cacerts -out chain.pem
+
+
+
+KERNEL?
+- mmap (Memory mapping)
+sysctl vm.max_map_count
+/etc/sysctl.conf
+- file descriptors (fs.file-max)
+Capability Key 	Capability Description
+SETPCAP 	Modify process capabilities.
+MKNOD 	Create special files using mknod(2).
+AUDIT_WRITE 	Write records to kernel auditing log.
+CHOWN 	Make arbitrary changes to file UIDs and GIDs (see chown(2)).
+NET_RAW 	Use RAW and PACKET sockets.
+DAC_OVERRIDE 	Bypass file read, write, and execute permission checks.
+FOWNER 	Bypass permission checks on operations that normally require the file system UID of the process to match the UID of the file.
+FSETID 	Don’t clear set-user-ID and set-group-ID permission bits when a file is modified.
+KILL 	Bypass permission checks for sending signals.
+SETGID 	Make arbitrary manipulations of process GIDs and supplementary GID list.
+SETUID 	Make arbitrary manipulations of process UIDs.
+NET_BIND_SERVICE 	Bind a socket to internet domain privileged ports (port numbers less than 1024).
+SYS_CHROOT 	Use chroot(2), change root directory.
+SETFCAP 	Set file capabilities.
+
+Capability Key 	Capability Description
+SYS_MODULE 	Load and unload kernel modules.
+SYS_RAWIO 	Perform I/O port operations (iopl(2) and ioperm(2)).
+SYS_PACCT 	Use acct(2), switch process accounting on or off.
+SYS_ADMIN 	Perform a range of system administration operations.
+SYS_NICE 	Raise process nice value (nice(2), setpriority(2)) and change the nice value for arbitrary processes.
+SYS_RESOURCE 	Override resource Limits.
+SYS_TIME 	Set system clock (settimeofday(2), stime(2), adjtimex(2)); set real-time (hardware) clock.
+SYS_TTY_CONFIG 	Use vhangup(2); employ various privileged ioctl(2) operations on virtual terminals.
+AUDIT_CONTROL 	Enable and disable kernel auditing; change auditing filter rules; retrieve auditing status and filtering rules.
+MAC_ADMIN 	Allow MAC configuration or state changes. Implemented for the Smack LSM.
+MAC_OVERRIDE 	Override Mandatory Access Control (MAC). Implemented for the Smack Linux Security Module (LSM).
+NET_ADMIN 	Perform various network-related operations.
+SYSLOG 	Perform privileged syslog(2) operations.
+DAC_READ_SEARCH 	Bypass file read permission checks and directory read and execute permission checks.
+LINUX_IMMUTABLE 	Set the FS_APPEND_FL and FS_IMMUTABLE_FL i-node flags.
+NET_BROADCAST 	Make socket broadcasts, and listen to multicasts.
+IPC_LOCK 	Lock memory (mlock(2), mlockall(2), mmap(2), shmctl(2)).
+IPC_OWNER 	Bypass permission checks for operations on System V IPC objects.
+SYS_PTRACE 	Trace arbitrary processes using ptrace(2).
+SYS_BOOT 	Use reboot(2) and kexec_load(2), reboot and load a new kernel for later execution.
+LEASE 	Establish leases on arbitrary files (see fcntl(2)).
+WAKE_ALARM 	Trigger something that will wake up the system.
+BLOCK_SUSPEND 	Employ features that can block system suspend.
+
+
+LVM?
+-lvmdiskscan -> general
+-lvmdiskscan -l -> dispositivos lvm
+- pvscan -> Dispositivos fisicos
+- pvs 
+- pvdisplay
+- pvdisplay -m -> con dispositivos lógicos
+Groups
+- vgscan -> volume groups
+- vgdisplay -v
+Logicos
+- lvscan
+- lvdisplay -m
+
+
+
+
+
+

@@ -1,0 +1,301 @@
+= Redes y Linux
+Isidoro Treviño <isidoro.trevino@vintec.mx>
+2018-06-09
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:deckjs_transition: fade
+:navigation:
+:menu:
+:goto:
+
+== Diagnósticos de red
+
+* **ping** -> Envía un "Mensaje ICMP ECHO REQUEST" esperando una respuesta del servidor destino
+** Sirve para evaluar rápidamente si responde un servidor
+** También ayuda a evaluar tiempos de respuesta simple (que solo impliquen transmisión de red, fundamentalmente)
+** Puede ser desactivado por le servidor destino, por lo que una falla de comunicación no implica que el destino sea 
+inaccesible
+
+[source,python]  
+----
+/curso_ies$ ping google.com
+PING google.com (172.217.7.46) 56(84) bytes of data.
+64 bytes from qro02s12-in-f46.1e100.net (172.217.7.46): icmp_seq=1 ttl=58 time=9.56 ms
+64 bytes from qro02s12-in-f46.1e100.net (172.217.7.46): icmp_seq=2 ttl=58 time=36.1 ms
+64 bytes from qro02s12-in-f46.1e100.net (172.217.7.46): icmp_seq=3 ttl=58 time=9.42 ms
+----
+
+|===
+| qro02s12-in-f46.1e100.net (172.217.7.46) | icmp_seq=1 | ttl=58 | time=9.56 ms
+| Resolución DNS inversa | Núm paquete | Tiempo entre saltos | Tiempo de respuesta
+|===
+
+== Diagnósticos de red
+
+* **traceroute** -> Permite diagnosticar la ruta que toma un paquete a su destino
+** Manda tres peticiones, por lo que cada salto muestra el tiempo de cada petición
+
+[source,python]  
+----
+/curso_ies$ traceroute google.com
+traceroute to google.com (172.217.7.46), 30 hops max, 60 byte packets
+ 1  gpon-infinitum.alu.com (192.168.1.254)  3.591 ms  3.567 ms  3.551 ms
+ 2  ipdsl-mex-roma-78-l0.uninet.net.mx (201.154.0.64)  8.466 ms  8.501 ms  8.491 ms
+ 3  reg-qro-triara-27-hge0-13-0-3.uninet.net.mx (189.246.169.93)  10.535 ms  12.141 ms  10.511 ms
+ 4  ext-189-247-252-41.uninet.net.mx (189.247.252.41)  10.472 ms  10.432 ms  10.450 ms
+ 5  72.14.234.204 (72.14.234.204)  13.613 ms  12.075 ms 108.170.254.21 (108.170.254.21)  13.626 ms
+ 6  72.14.237.123 (72.14.237.123)  13.595 ms  8.421 ms  8.415 ms
+ 7  qro02s12-in-f46.1e100.net (172.217.7.46)  8.400 ms  8.343 ms  8.341 ms
+----
+
+== Diagnósticos de servicios
+
+* **telnet** -> Permite la comunicación interactiva con un servicio remoto por medio del protocolo telnet
+** Actualmente el protocolo está en desuso pero sirve para evaluar la conectividad con algunos servicios
+
+[source,python]  
+----
+/curso_ies$ telnet google.com 80
+Trying 172.217.7.46...
+Connected to google.com.
+Escape character is '^]'.
+GET / HTTP/1.0
+
+<respuesta....>
+----
+
+[source,python]  
+----
+/curso$ telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.localdomain.
+Escape character is '^]'.
+220  ESMTP
+HELO justtesting
+250
+MAIL FROM: me@telnettingin.com
+250 ok
+RCPT TO: postmaster@mail.getsdeliveredhere.net
+250 ok
+DATA
+354 go ahead
+To: postmaster@mail.getsdeliveredhere.net
+From: telnetclient@mail.getsdeliveredhere.net
+Subject: this is a test message
+Date: Thu, 21 Jun 2007 11:11:40 -0400
+Just testing SMTP functionality by telnetting in to port 25.  I'll end this message now
+by entering in a line with nothing but a period in it and hitting return.
+.
+250 ok 1103093638 qp 87827
+QUIT
+221
+Connection closed by foreign host.
+----
+
+== Diagnósticos de servicios
+
+* **curl** -> Utilizado específicamente para probar servicios o aplicaciones web
+** Puede ejecutar operaciones complejas como carga de archivos o envío de formularios
+** Puede usarse también para verificar que un sitio web responda
+
+[source,python]  
+----
+#Para correrlo de manera silenciosa usamos -f
+curl -f es.wikipedia.org
+
+#Podemos usar -v para visualizar los headers de respuesta
+ curl -v wikipedia.org
+----
+
+== Diagnósticos de servicios
+
+* **nc** -> Permite revisar la conectividad a un puerto
+
+[source,python]  
+----
+/curso$ nc -zv google.com 80
+Connection to google.com 80 port [tcp/http] succeeded!
+ 
+----
+
+== Diagnósticos de servicios
+
+* Si no se pueden utilizar los comandos anteriores, se puede utilizar el siguiente comando:
+
+[source,python]  
+----
+#bash -c "cat < /dev/null > /dev/tcp/$host/$port"
+bash -c "cat < /dev/null > /dev/tcp/google.com/80"
+----
+
+== Mapeo de puertos 
+
+* **nmap** -> Permite realizar escaneos de seguridad y exploración de puertos
+** Su uso puede estar prohibido por algunas instituciones **EXTREME PRECAUCIONES**
+
+[source,python]  
+----
+#Revisar los puertos de un host
+/curso$ nmap google.com
+
+Starting Nmap 7.01 ( https://nmap.org ) at 2018-07-06 23:47 CDT
+Nmap scan report for google.com (216.58.193.14)
+Host is up (0.0091s latency).
+Other addresses for google.com (not scanned): 2607:f8b0:4012:804::200e
+rDNS record for 216.58.193.14: qro02s11-in-f14.1e100.net
+Not shown: 998 filtered ports
+PORT    STATE SERVICE
+80/tcp  open  http
+443/tcp open  https
+
+Nmap done: 1 IP address (1 host up) scanned in 4.56 seconds
+----
+
+== Mapeo de puertos 
+
+[source,python]  
+----
+#Escanear una subred completa
+/curso_ies$ nmap 192.168.1.*
+
+Starting Nmap 7.01 ( https://nmap.org ) at 2018-07-06 23:49 CDT
+Nmap scan report for 192.168.1.64
+Host is up (0.069s latency).
+Not shown: 997 closed ports
+PORT     STATE SERVICE
+8008/tcp open  http
+8009/tcp open  ajp13
+9000/tcp open  cslistener
+
+Nmap scan report for 192.168.1.72
+Host is up (0.00024s latency).
+Not shown: 996 closed ports
+PORT     STATE SERVICE
+22/tcp   open  ssh
+4000/tcp open  remoteanything
+9000/tcp open  cslistener
+9100/tcp open  jetdirect
+
+Nmap scan report for gpon-infinitum.alu.com (192.168.1.254)
+Host is up (0.0037s latency).
+Not shown: 998 closed ports
+PORT      STATE SERVICE
+80/tcp    open  http
+49152/tcp open  unknown
+
+Nmap done: 256 IP addresses (3 hosts up) scanned in 76.91 seconds
+----
+
+== Mapeo de puertos 
+
+[source,python]  
+----
+#Escanear un rango de ip's
+/curso$ nmap 192.168.1.60-64
+
+Starting Nmap 7.01 ( https://nmap.org ) at 2018-07-06 23:52 CDT
+Nmap scan report for 192.168.1.64
+Host is up (0.024s latency).
+Not shown: 997 closed ports
+PORT     STATE SERVICE
+8008/tcp open  http
+8009/tcp open  ajp13
+9000/tcp open  cslistener
+
+Nmap done: 5 IP addresses (1 host up) scanned in 2.50 seconds
+----
+
+== Mapeo de puertos
+
+[source,python]  
+----
+#Escanear un host engañando a un firewall
+ nmap -sN 192.168.1.64
+
+Starting Nmap 7.01 ( https://nmap.org ) at 2018-07-06 23:56 CDT
+Nmap scan report for 192.168.1.64
+Host is up (0.063s latency).
+Not shown: 997 closed ports
+PORT     STATE         SERVICE
+8008/tcp open|filtered http
+8009/tcp open|filtered ajp13
+9000/tcp open|filtered cslistener
+MAC Address: 6C:AD:F8:60:80:35 (AzureWave Technology)
+----
+
+== Diagnóstico de DNS
+
+* **dig** -> Permite consultar los servidores de DNS
+** Ayuda a detectar problemas de resolución de nombres
+
+[source,python]  
+----
+$ dig google.com
+
+; <<>> DiG 9.10.3-P4-Ubuntu <<>> google.com
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 480
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; ANSWER SECTION:
+google.com.		299	IN	A	216.58.193.14
+
+;; Query time: 188 msec
+;; SERVER: 127.0.1.1#53(127.0.1.1)
+;; WHEN: Sat Jul 07 00:03:10 CDT 2018
+;; MSG SIZE  rcvd: 55
+
+#Para consultar todos los registros posibles, usar el siguiente comando:
+$ dig vintec.mx ANY +noall +answer
+
+; <<>> DiG 9.10.3-P4-Ubuntu <<>> vintec.mx ANY +noall +answer
+;; global options: +cmd
+vintec.mx.		59	IN	A	189.146.207.72
+vintec.mx.		3599	IN	TXT	"google-site-verification=A29907SCTajQbL0wMLgk7ZaJJ1idQAUjeDGbzqaqwPA"
+vintec.mx.		3599	IN	MX	30 aspmx3.googlemail.com.
+vintec.mx.		3599	IN	SOA	ns1.afraid.org. dnsadmin.afraid.org. 1806070001 86400 7200 2419200 3600
+vintec.mx.		3599	IN	NS	ns3.afraid.org.
+vintec.mx.		3599	IN	NS	ns2.afraid.org.
+
+#Búsqueda invertida
+$ dig -x 189.146.207.72 +short 
+dsl-189-146-207-72-dyn.prod-infinitum.com.mx.
+----
+
+== Diagnóstico de DNS
+
+* **nslookup** -> Permite realizar consultas a los servidores de DNS
+** Permite elegir el servidor DNS a utilizar lo que facilita los diagnósticos
+
+[source,python]  
+----
+/curso_ies$ nslookup
+> server 1.1.1.1
+Default server: 1.1.1.1
+Address: 1.1.1.1#53
+> google.com
+Server:		1.1.1.1
+Address:	1.1.1.1#53
+
+Non-authoritative answer:
+Name:	google.com
+Address: 216.58.216.14
+> banamex.com
+Server:		1.1.1.1
+Address:	1.1.1.1#53
+
+Non-authoritative answer:
+Name:	banamex.com
+Address: 192.193.200.148
+Name:	banamex.com
+Address: 192.193.8.176
+
+> exit
+----
+
+== Archivos de referencia
+
+* link:intro.html[Regresar a presentación principal]

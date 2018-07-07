@@ -1,0 +1,268 @@
+= Fundamentos de Linux
+Isidoro Treviño <isidoro.trevino@vintec.mx>
+2018-06-09
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:deckjs_transition: fade
+:navigation:
+:menu:
+:goto:
+
+== Conceptos básicos
+
+* Alias de directorios:
+** **.** -> Apunta al directorio actual
+** **..** -> Apunta al directorio padre 
+** **~** -> Apunta al directorio "HOME" o directorio principal del usuario
+
+== Conceptos básicos
+
+* **>** -> Redirigir salida estándar (stdout) hacia archivo
+* **2>** -> Redirigir salida de error (stderr) hacia archivo
+* **<** -> Redirigir entrada estándar (stdin) desde archivo
+* **|** -> Concatena comandos (la salida de un comando se vuelve la entrada del siguiente)
+
+== Conceptos básicos
+
+* Para declarar una variable:
+** <NOMBRE_VARIABLE>=<valor> -> Variable con un valor fijo
+** <NOMBRE_VARIABLE>=$(<comando>) -> El resultado de un comando se asigna a la variable
+** <NOMBRE_VARIABLE>=${<variable1>:-<valor_default>} -> Se asigna el valor de la variable1, de no existir, toma el valor default
+* Variables especiales:
+** **$@** -> Arreglo que contiene todos los argumentos proporcionados a un script
+** **$?** -> Muestra el código de salida del último comando
+** **$1 $2 ...** -> Argumentos proporcionados al script
+
+== Conceptos básicos
+
+* Variables de ambiente relevantes:
+** PATH -> Contiene los directorios que utilizará el SO para buscar comandos ejecutables
+** HOME -> Apunta al directorio home o directorio principal del usuario
+** PWD -> Contiene el directorio actual
+** CLASSPATH -> Contiene la ubicación de librerías java a utilizar en la ejecución de un proceso java
+** IFS -> Contiene el separador estándar (sirve en conjunto con comandos de búsqueda / filtrado)  
+
+== Comandos Básicos Linux
+
+* **cd** -> Cambio de directorio
+** Sintaxis: **cd <directorio>**
+
+[source,python]  
+----
+#Cambio a directorio "hijo" o subdirectorio
+/curso$ cd subdir
+/curso/subdir$
+
+#Cambio a directorio anterior o padre
+/curso$ cd ..
+/$
+
+#Regreso a directorio home
+/curso$ cd
+/home/usuario$
+----
+
+== Comandos Básicos
+
+* **ls** -> Listar directorios
+** **ls** -> Listado simple
+** **ls -la** -> Listado detallado
+** **ls -la <archivo o patrón>** -> Enlistar el detalle de los archivos que coincidan con el patrón
+
+[source,python]  
+----
+/curso$ ls -la *.gradle
+-rw-rw-r-- 1 chololo chololo  659 jun  2 10:19 build.gradle
+-rw-rw-r-- 1 chololo chololo  659 jun  2 10:19 settings.gradle
+/curso$
+----
+
+Donde:
+
+|===
+| -rw-rw-r-- | 1 | chololo | chololo | 2508 | jul  6 22:02 | build.gradle
+| Permisos | Número de ligas | Nombre del propietario | Grupo propietario | Tamaño en bytes | Fecha de modificación | Nombre 
+|===
+
+== Comandos básicos
+
+* Comandos sencillos:
+* **echo "<mensaje> $<VAR>"** -> Despliega mensaje en pantalla
+* **cat <archivo> [<archivo2>...]** -> Muestra contenido de archivo(s)
+* **export <LLAVE>=<valor>** -> Declara una variable de ambiente disponible para la terminal actual y los procesos creados por ella  
+* **env** -> muestra las variables de ambiente declaradas en la terminal actual
+* **unset <LLAVE>** -> Elimina la variable de ambiente de la terminal
+* **pwd** -> Muestra el directorio actual del usuario
+* **whoami** -> Muestra el usuario actual de la terminal
+
+== Permisos
+
+* **chmod** -> Cambio de permisos a un archivo
+* **chown** -> Cambio de usuario y/o grupo propietario
+* **chgrp** -> Cambio de grupo propietario
+
+[source,python]  
+----
+#Cambio de permisos (puede ser recursivo)
+# chmod [-R] <patron de permisos> <archivo>
+/curso$ chmod -R 775 src
+
+#Cambio de propietario y grupo recursivamente
+# chown [-R] <usuario>[:<grupo>] <ruta>
+/curso$ chown otadmin:opentext .
+----
+
+
+== Búsquedas de patrones
+
+* **grep** -> Búsqueda de texto en archivos
+
+[source,python]  
+----
+#Filtrar resultados a partir de un comando previo
+# <comando> | grep <patron>
+/curso$ ls -la | grep gradle
+
+#Buscar patrones en un archivo
+# grep <patron> <archivo>
+/curso$ grep "dependencies" build.gradle
+
+#Buscar patrones de manera recursiva a partir de un directorio
+# grep -r <patron> <directorio base>
+/curso$ grep -r "texto" .
+----
+
+== Búsquedas de patrones
+
+* **find** -> Búsqueda de archivos
+
+[source,python]  
+----
+#Buscar archivos con cierto patrón de nombrado ignorando errores (de permisos de acceso)
+# find <directorio_base> -name <patron> 2>/dev/null
+/curso$ find . -name "*.txt" 2>/dev/null
+
+#Buscar archivos con cierto patrón pero que sean de un tipo en específico (archivos, directorios, ligas, etc)
+# find <directorio_base> [-name <patron>] [-type <tipo>]
+/curso$ find . -name "usr" -type d 2>/dev/null
+
+#Buscar archivos y ejecutar un comando sobre los resultados
+# find <directorio_base> [-name <patron>] -exec <comando y sus argumentos> {} \;
+/curso$ find . -name "usr" -type d -exec ls -la {} \; 2>/dev/null 
+----
+
+== Búsquedas de patrones
+
+* **awk** -> Programa avanzado de búsqueda y procesamiento de texto
+
+[source,python]  
+----
+# Filtrar una columna de información con base en separación por espacios
+# <comando> | awk '{print $<numero de columna>}'
+/curso$ ls -la | awk '{print $5}'
+----
+
+== Búsquedas de patrones
+
+* **sed** -> Transforma texto con base en expresiones regulares
+
+[source,python]  
+----
+#Mostrar determinado número de líneas de un archivo 
+#  sed -n '<linea inicial>,<linea final>p' <archivo>
+/curso$ sed -n '5,10p' myfile.txt
+
+#Sustituir patrones en un archivo
+# sed 's/<patron de busqueda>/<reemplazo>/g' <archivo>
+/curso$ sed 's/version/story/g' myfile.txt
+
+#Desplegar líneas de archivos que coincidan con un patrón
+# sed -n '/<patron>/ p' <ruta>
+/curso$ sed -n '/^Jul  1/ p' /var/log/secure
+----
+
+== Scripts Shell
+
+* Deben contener al inicio el tipo de shell a utilizar
+* Deben asignarse permisos de ejecución
+
+[source,yaml]  
+----
+#!/bin/bash
+----
+
+== Scripts Shell
+
+* Condiciones
+** Por medio de la instrucción **if**
+
+[source,yaml]  
+----
+#!/bin/bash
+
+# Si el primer argumento es server despliega mensaje
+if [ "$1" = 'server' ]; then
+  echo "Hola mundo"
+fi
+
+#Revisa si una variable no existe o es nula
+if [ -z "$1" ]; then
+  echo "El argumento no existe"
+fi
+
+#Si la variable es diferente a una cadena vacía ejecuta el comando
+if [ -n "$1" ]; then
+  echo "Hola"
+fi
+----
+
+== Scripts Shell
+
+* Bucles
+** Por medio de la instrucción **while** o **for**
+
+[source,yaml]  
+----
+#Iterando números del 0 al 7
+for i in {0..7}
+do
+  echo "Iterando el indice $i"
+done
+
+#Lectura de archivos línea por línea
+while read -r linea || [[ -n "$linea" ]]; do
+  echo "Leyendo la línea $linea"
+done < ./practica1_texto.txt
+----
+
+== Scripts Shell
+
+* Bucles
+** En el caso especial para leer un archivo separado por comas, hay que modificar
+provisionalmente la variable de ambiente IFS
+
+[source,yaml]  
+----
+#Guardamos en otra variable el separador "estandar"
+OLDIFS=$IFS
+#Indicamos que ahora el separador será una coma
+IFS=,
+#Iteramos un archivo separado por comas
+while read nombre apaterno amaterno
+do
+  echo "Tu nombre es $nombre y te apellidas $apaterno $amaterno"
+done < ./practica1_texto.csv
+#Regresamos el separador a su valor original
+IFS=$OLDIFS
+----
+
+== Archivos de referencia
+
+* link:clase1/practica1.sh[Script de ejemplo]
+* link:clase1/practica1_a.sh[Otro script de ejemplo]
+* link:clase1/practica1_texto.csv[Archivo separado por comas]
+* link:clase1/practica1_texto.txt[Archivo de texto simple]
+
+* link:intro.html[Regresar a presentación principal]
