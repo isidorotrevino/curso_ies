@@ -1,7 +1,4 @@
 
-[main_server]
-192.168.0.42  ansible_ssh_user=vintec
+[clase]
+192.168.0.210  ansible_ssh_user=chololo
 
-[main_server:vars]
-ansible_python_interpreter=/usr/bin/python3
-docker_hostname=vintecdyne2

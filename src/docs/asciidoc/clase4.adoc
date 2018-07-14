@@ -46,7 +46,7 @@ $ sudo apt-get install ansible
 [source,python]  
 ----
 [main_server]<1>
-192.168.0.42 <2> ansible_ssh_user=vintec <3>
+192.168.0.42 ansible_ssh_user=vintec <2> <3>
 
 [main_server:vars]<4>
 ansible_python_interpreter=/usr/bin/python3
@@ -56,3 +56,184 @@ docker_hostname=vintecdyne2
 <2> IP o nombre del host
 <3> Nombre del usuario en el host (opcional)
 <4> Variables específicas para el grupo de hosts (opcional)
+
+== Variables de ambiente en la máquina control
+
+* **ANSIBLE_CONFIG** -> Indica la ubicación del archivo de configuración
+* **ANSIBLE_INVENTORY** -> Indica la ubicación del archivo de hosts
+* **PROJECT_DIR** -> Ubicación del directorio del proyecto (Por si realizamos alguna operación no estándar)
+* **ANSIBLE_KEEP_REMOTE_FILES** -> Si contiene el valor 1, no elimina los archivos temporales copiados al host (útil para 
+depurar errores)
+* **ANSIBLE_VAULT_PASSWORD_FILE** -> Ubicación del archivo de contraseñas cifradas
+
+== Conceptos básicos
+
+* **Playbook** -> Conjunto de reglas a ejecutar sobre un host
+* **Role** -> Conjunto de tareas agrupadas para un realizar una configuración / tarea
+* **Task** -> Unidad de procesamiento mínima, corresponde a una sola tarea dentro de un rol
+
+=== Comandos
+
+* **ansible** -> Ejecuta una sola tarea
+* **ansible-playbook** -> Ejecuta un playbook completo
+* **ansible-vault** -> Permite cifrar/descifrar archivos de configuración
+ 
+== Estructura de directorios
+
+* **playbooks** ->
+** **Archivos de rol (yml)** -> Define los hosts y roles a aplicar para el playbook provisto
+** **roles** -> Carpeta que contiene los diferentes roles
+*** **files** -> Archivos que pueden ser copiados de la máquina control al host
+*** **tasks** -> Contienen las diferentes tareas a ejecutar para un rol particular
+*** **templates** -> Archivos quepueden ser procesados por un motor de plantillas previo a copiarse al host
+*** **vars** -> Variables de ejecución en el playbook
+
+== Ejemplo inicial
+
+[source,python]  
+----
+$export ANSIBLE_CONFIG=$PWD/ansible.cfg <1>
+$export ANSIBLE_INVENTORY=src/docs/asciidoc/clase4/ansible_hosts
+$ansible all -m ping 
+
+SUDO password: <2>
+192.168.0.210 | SUCCESS => { <3>
+    "changed": false, 
+    "ping": "pong"
+}
+
+----
+<1> Exportamos variables de ambiente
+<2> Siempre pide password de super usuario (algunas tareas lo requieren)
+<3> El resultado siempre será un mensaje JSON (independiente al efecto en el host)
+
+== Primer playbook
+
+* playbooks
+** practica1.yml
+** roles
+*** practica1
+**** files
+***** config.txt
+**** tasks
+***** main.yml
+**** templates
+***** ips.txt
+**** vars
+***** main.yml
+
+== practica1.yml
+
+[source,yaml]  
+----
+---
+- hosts: 
+  - clase <1>
+  roles:
+  - { role: practica1 } <2>
+----
+<1> Uno o más grupos de servidores
+<2> Uno o más roles a ejecutar
+
+== config.txt
+
+* Es un archivo de ejemplo, no tiene ninguna aplicación práctica
+
+[source,python]  
+----
+config1=valor1
+config2=valor2
+config3=valor3
+----
+
+== tasks/main.yml
+
+* En el directorio **tasks** y en el **vars** siempre debe existir un archivo **main.yml**
+* Pueden existir archivos yml adicionales
+* En este caso indican las tareas a ejecutar
+
+[source,yaml]  
+----
+- name: Creación de directorios <1>
+  become: true <2>
+  file: <3>
+    state: directory  <4>
+    path: "{{item['path']}}"
+    owner: "{{ansible_user_id}}"
+    mode: "{{item['mode']|default('0755')}}"  
+  with_items: <5>
+    - path: "/tmp/{{dir_base}}/{{ansible_user_id}}"      
+    - path: "/tmp/{{dir_base}}/{{ansible_user_id}}/config"
+      mode: "0700"
+    - path: "/tmp/{{dir_base}}/{{ansible_user_id}}/data"
+---- 
+<1> **Etiqueta** -> Ayuda a identificar que tarea se ejecuta
+<2> **become** -> Indica si dicha tarea debe ser realizada por un super usuario
+<3> **tarea** -> Tarea a ejecutar (en este caso, creación de directorio)
+<4> **Parámetros de la tarea** -> Según la tarea, se especifican sus parámetros de funcionamiento
+<5> **Búcle de parámetros** -> En algunos casos, será necesario ejecutar la misma tarea con diferentes parámetros
+
+== tasks/main.yml
+
+[source,yaml]  
+----
+- name: Copia de archivo de configuración
+  copy: <1>
+    src: config.txt
+    dest: "/tmp/{{dir_base}}/{{ansible_user_id}}/config/config.txt"
+    mode: "0644"
+    
+- name: Copia de archivo de ips
+  template: <2>
+    src: ips.txt
+    dest: "/tmp/{{dir_base}}/{{ansible_user_id}}/data/ips.txt"
+----
+<1> Copia un archivo en la carpeta files
+<2> Procesa un archivo en la carpeta templates (Por medio del motor Jinja2)
+
+== vars/main.yml
+
+* Contiene las variables a usar en el rol en particular 
+
+[source,yaml]  
+----
+---
+dir_base: ejemplo_ansible <1>
+variable_compuesta: <2>
+  - valor1
+  - valor2
+variable_compleja: <3>
+  - llave1: valor1
+    llave2: valor2
+  - llave1: valor3
+    llave2: valor4
+----
+<1> Variable simple
+<2> Una variable puede tener a su vez una lista de valores
+<3> O en su caso cada valor también puede ser un objeto compuesto por varios elementos llave/valor
+
+== Principales módulos
+
+* Manipulación de archivos
+* Manipulación de base de datos
+* Configuración de redes
+* Cifrado
+* Configuración de Sistema Operativo
+* Integración y configuración de Cloud Computing
+* Manejo de contenedores
+* Utilerías diversas
+
+== Practica 2
+
+* Instalar MySQL mediante APT
+* Crear una base de datos "Practica"
+* Crear un usuario con todos los permisos en dicha base de datos
+* Crear una tarea calendarizada (cron) que concatene "HOLA MUNDO" a un archivo
+* Clonar el repositorio git https://github.com/arc42/arc42-template en la carpeta tmp del host
+* Crear un certificado SSL autofirmado 
+
+== Referencias
+
+* link:intro.html[Regresar a presentación principal]
+* link:http://jinja.pocoo.org/docs/2.10/[Documentación Jinja2]
+* link:https://docs.ansible.com/ansible/latest/modules/list_of_all_modules.html[Documentación de módulos ansible]

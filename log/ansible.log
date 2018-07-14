@@ -1,0 +1,24 @@
+2018-07-07 08:55:03,198 p=14683 u=chololo |  [DEPRECATION WARNING]: DEFAULT_SUDO_EXE option, In favor of Ansible Become, 
+which is a generic framework. See become_exe. , use become instead. This 
+feature will be removed in version 2.8. Deprecation warnings can be disabled by
+ setting deprecation_warnings=False in ansible.cfg.
+2018-07-07 08:55:03,198 p=14683 u=chololo |  [DEPRECATION WARNING]: DEFAULT_ASK_SUDO_PASS option, In favor of Ansible 
+Become, which is a generic framework. See become_ask_pass. , use become 
+instead. This feature will be removed in version 2.8. Deprecation warnings can 
+be disabled by setting deprecation_warnings=False in ansible.cfg.
+2018-07-07 08:55:03,198 p=14683 u=chololo |  [DEPRECATION WARNING]: DEFAULT_MODULE_LANG option, Modules are coded to set 
+their own locale if needed for screenscraping . This feature will be removed in
+ version 2.9. Deprecation warnings can be disabled by setting 
+deprecation_warnings=False in ansible.cfg.
+2018-07-07 08:55:03,198 p=14683 u=chololo |  [DEPRECATION WARNING]: DEFAULT_SUDO_USER option, In favor of Ansible Become, 
+which is a generic framework. See become_user. , use become instead. This 
+feature will be removed in version 2.8. Deprecation warnings can be disabled by
+ setting deprecation_warnings=False in ansible.cfg.
+2018-07-07 08:55:03,199 p=14683 u=chololo |  [DEPRECATION WARNING]: The sudo command line option has been deprecated in 
+favor of the "become" command line arguments. This feature will be removed in 
+version 2.6. Deprecation warnings can be disabled by setting 
+deprecation_warnings=False in ansible.cfg.
+2018-07-07 08:55:05,415 p=14683 u=chololo |  192.168.0.210 | SUCCESS => {
+    "changed": false, 
+    "ping": "pong"
+}

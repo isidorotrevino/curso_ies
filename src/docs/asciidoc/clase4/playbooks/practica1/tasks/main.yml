@@ -1,0 +1,28 @@
+---
+
+- name: Creación de directorios
+  become: true
+  file:
+    state: directory
+    path: "{{item['path']}}"
+    owner: "{{ansible_user_id}}"
+    mode: "{{item['mode']|default('0755')}}"  
+  with_items:
+    - path: "/tmp/{{dir_base}}/{{ansible_user_id}}"      
+    - path: "/tmp/{{dir_base}}/{{ansible_user_id}}/config"
+      mode: "0700"
+    - path: "/tmp/{{dir_base}}/{{ansible_user_id}}/data"
+
+- name: Copia de archivo de configuración
+  copy:
+    src: config.txt
+    dest: "/tmp/{{dir_base}}/{{ansible_user_id}}/config/config.txt"
+    mode: "0644"
+    
+- name: Copia de archivo de ips
+  template:
+    src: ips.txt
+    dest: "/tmp/{{dir_base}}/{{ansible_user_id}}/data/ips.txt"
+
+- name: Mostramos un mensaje
+  debug: var=hostvars

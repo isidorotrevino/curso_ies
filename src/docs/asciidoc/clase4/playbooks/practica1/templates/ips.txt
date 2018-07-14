@@ -1,0 +1,5 @@
+#ARCHIVO DE CONFIGURACIÓN DE IPS
+{% for ip in ansible_all_ipv4_addresses %}
+- {{ip}}
+{% endfor %}
+IP_DEFAULT={{ansible_default_ipv4.address}}

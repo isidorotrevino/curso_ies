@@ -1,0 +1,65 @@
+---
+
+- name: Instalar Postgresql desde APT
+  become: true
+  apt:
+    name: postgresql
+    state: present
+
+- name: Instalamos módulos python
+  become: true
+  pip:
+    name: "{{item}}"
+    state: present
+  with_items:
+    - psycopg2
+    - pyOpenSSL
+
+- name: Ejecutar servidor postgresql
+  become: true
+  service:
+    name: postgresql
+    state: restarted
+
+#- name: Crear base de datos "Practica"
+#  become: true
+#  postgresql_db:
+#    name: practica
+#    login_host: "localhost"
+#    login_user: postgres
+#    login_password: laptop
+#    state: present
+#    port: 5432
+
+- name: Creamos tarea calendarizada
+  cron:
+    name: "Saludo hola mundo"
+    minute: "*"
+    job: "echo 'HOLA MUNDO' >> /tmp/saludo.txt"
+
+
+- name: Clonamos el repositorio
+  git:
+    repo:  https://github.com/arc42/arc42-template
+    dest: /tmp/repo
+    update: yes
+
+- name: Creamos una llave privada
+  openssl_privatekey:
+    path: /tmp/ejemplo.pem
+    size: 2048
+
+- name: Crear una solicitud de certificado  
+  openssl_csr:
+    path: "/tmp/www.ejemplo.csr"
+    privatekey_path: "/tmp/ejemplo.pem"
+    common_name: "www.ejemplo.com"
+
+- name: Creamos un certificado
+  openssl_certificate:
+    path: "/tmp/ejemplo.crt"
+    csr_path: "/tmp/www.ejemplo.csr"
+    privatekey_path: /tmp/ejemplo.pem
+    provider: selfsigned
+
+

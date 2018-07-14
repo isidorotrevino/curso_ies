@@ -1,0 +1,10 @@
+---
+dir_base: ejemplo_ansible
+variable_compuesta:
+  - valor1
+  - valor2
+variable_compleja:
+  - llave1: valor1
+    llave2: valor2
+  - llave1: valor3
+    llave2: valor4
