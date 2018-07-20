@@ -1,0 +1,26 @@
+= Docker (1)
+Isidoro Treviño <isidoro.trevino@vintec.mx>
+2018-06-30
+:revnumber: {project-version}
+:example-caption!:
+ifndef::imagesdir[:imagesdir: images]
+ifndef::sourcedir[:sourcedir: ../java]
+:deckjs_transition: fade
+:navigation:
+:menu:
+:goto:
+
+== Introducción
+
+https://medium.freecodecamp.org/a-beginner-friendly-introduction-to-containers-vms-and-docker-79a9e3e119b
+
+https://en.wikipedia.org/wiki/Paravirtualization
+
+https://en.wikipedia.org/wiki/Operating-system-level_virtualization
+
+https://en.wikipedia.org/wiki/Copy-on-write
+
+https://en.wikipedia.org/wiki/Virtual_network_interface
+
+https://linuxconfig.org/configuring-virtual-network-interfaces-in-linux
+
