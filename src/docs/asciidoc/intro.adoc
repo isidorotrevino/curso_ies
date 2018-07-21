@@ -19,6 +19,25 @@ ifndef::sourcedir[:sourcedir: ../java]
 * link:clase4.html[Ansible]
 * link:clase5.html[Docker, Parte 1]
 
+== Material
+
+=== Carga inicial
+
+[source,python]  
+----
+$ git clone https://github.com/isidorotrevino/curso_ies
+$ cd curso_ies
+$ ./gradlew clean asciidoc
+----
+
+=== Actualización
+
+[source,python]  
+----
+$ cd curso_ies
+$ git pull origin master
+$ ./gradlew clean asciidoc
+----
 
 == Introducción
 

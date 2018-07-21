@@ -266,8 +266,7 @@ $ docker run hello-world
 * Instalación de Contenedor Docker Nginx a través de Ansible
 [source,python]  
 ----
-$ docker run --name mynginx2 -v /var/www:/usr/share/nginx/html:ro \
--v /var/nginx/conf:/etc/nginx:ro -P -d nginx
+$ docker run --name mynginx2 -v /var/www:/usr/share/nginx/html:ro -P -d nginx
 ----
 
 * Instalación de Contenedor Docker Mayan EDMS a través de Ansible
