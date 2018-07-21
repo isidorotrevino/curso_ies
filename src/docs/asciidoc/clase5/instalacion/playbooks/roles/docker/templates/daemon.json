@@ -1,0 +1,16 @@
+{
+  "hosts": ["fd://", "unix:///var/run/docker.sock", "tcp://0.0.0.0:{{docker_port}}"],
+  "dns": ["1.1.1.1","8.8.8.8", "8.8.4.4"],
+  "storage-driver": "overlay2",
+  "graph": "{{docker_data_dir}}",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "2"
+  },
+  "tls": true,
+  "tlscacert": "{{docker_config}}/ca.pem",
+  "tlscert": "{{docker_config}}/server-cert.pem",
+  "tlskey": "{{docker_config}}/server-key.pem",
+  "tlsverify": true
+}

@@ -1,0 +1,36 @@
+---
+
+
+- name: Instalación de docker
+  become: true
+  apt: 
+    name: docker-ce
+    state: latest
+    update_cache: yes
+    
+- name: Instalación de docker compose
+  become: true    
+  pip: 
+    name: docker-compose
+    state: present
+    
+- name: Descarga de plugin docker local persist
+  become: true
+  get_url:
+    url: https://raw.githubusercontent.com/CWSpear/local-persist/master/scripts/install.sh
+    dest: "{{tmp_path}}/install.sh"
+    mode: 0755
+    owner: "{{root_user}}"
+    
+- name: Instalación de plugin docker local persist    
+  become: true
+  shell: ./install.sh
+  args:
+    chdir: "{{tmp_path}}"
+    
+- name: Reinicio de motor docker
+  become: true
+  systemd:
+    state: restarted
+    daemon_reload: yes
+    name: docker

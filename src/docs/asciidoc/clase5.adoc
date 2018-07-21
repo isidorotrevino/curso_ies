@@ -1,6 +1,6 @@
 = Docker (1)
 Isidoro Treviño <isidoro.trevino@vintec.mx>
-2018-06-30
+2018-07-21
 :revnumber: {project-version}
 :example-caption!:
 ifndef::imagesdir[:imagesdir: images]
@@ -11,6 +11,275 @@ ifndef::sourcedir[:sourcedir: ../java]
 :goto:
 
 == Introducción
+
+=== Problemática en TI
+
+* Multiplicidad de stacks de soluciones
+* Multiplicidad de ambientes de Hardware
+* Interacción entre servicios y aplicaciones
+* Migración entre servicios
+
+=== Tendencias
+
+* Migrar cargas de trabajo a la "nube"
+* Incrementar la portabilidad entre ambientes
+* Evitar el "Vendor Lock-In"
+
+== La Edad Oscura
+
+image::clase5/bare_metal.png[Bare Metal]
+
+* Una aplicación en un servidor físico
+** Tiempos de despliegue lentos
+** Grandes costos
+** Recursos desperdiciados
+** Dificultad para escalar
+** Dificultad para migrar
+** "Vendor Lock-In"
+
+== Cambio de paradigma
+
+=== Modernización de aplicaciones
+
+* Problemas del programador
+** Actualizaciones en aplicaciones monolíticas requieren compilaciones grandes
+** La aplicación se vuelve el punto central de falla
+** Dificultad para escalar
+* Microservicios
+** Romper la aplicación monolítica en operaciones separadas
+* Aplicaciones de 12 factores
+* Integración continua
+
+== Aplicaciones de 12 factores
+
+* **Codebase** ->  Una sola fuente de código en un sistema de control de versiones
+* **Dependencias** -> Las dependencias deben estar explícitamente declaradas y aisladas
+* **Configuración** -> Almacenar la configuración en variables de ambiente, no en archivos
+* **Backing Services** -> Asumir que ningún servicio externo estará disponible siempre
+* **Build, Release, Run** -> Separar de manera estricta las etapas de construcción y ejecución
+
+== Aplicaciones de 12 factores
+
+* **Manejo de procesos** -> La aplicación debe poder correr como uno o más procesos sin estado
+* **Enlace de puertos** -> La aplicación debe tener un puerto específico asignado
+* **Concurrencia** -> Programar orientado a escalamiento horizontal
+* **Desechabilidad** -> Inicio rápido y cierre elegante
+* **Paridad desarrollo/producción** ->  La naturaleza de los ambientes debe ser lo más similar posible
+
+== Integración continua
+
+image::clase5/integracion_continua.png[Integración contínua] 
+
+== Necesidades de la organización
+
+* Lidiar con tecnología muy diversa
+
+|===
+| Bare Metal | Virtual
+| En sitio | En la nube
+| Linux | Windows
+| Arquitectura tradicional | Microservicios
+|===
+
+== Necesidades de las áreas
+
+=== Desarrollo
+
+* Libertad para crear y desplegar aplicaciones rápido
+* Responder rápido y flexible a las necesidades de cambio
+* Construir una vez ... (Finalmente) ejecutar donde sea
+** Ambiente de ejecución portable, limpio, seguro e higiénico
+** Sin preocupaciones por dependencias perdidas, paquetes extraños u otros
+puntos de conflicto durante diversos despliegues
+** Ejecutar cada aplicación en su entorno aislado, para correr diferentes versiones
+de bibliotecas y dependencias sin preocupación
+** Automatizar pruebas, integración, empaquetado... todo lo que se pueda correr mediante scripts
+** Eliminar preocupaciones entre la compatibilidad de diferentes plataformas
+** Minimizar el uso de recursos
+
+== Necesidades de las áreas
+
+=== Operaciones / Devops
+
+* Definir y empaquetar aplicaciones
+* Estandarizar, asegurar, administrar
+* Configurar una vez... Ejecutar lo que sea
+** Hacer el ciclo de vida más eficiente, consistente y repetible
+** Incrementar la calidad de código producido por los desarrolladores
+** Eliminar inconsistencias entre ambientes
+** Soportar la segregación de responsabilidades
+** Incrementar la velocidad y confiabilidad de los sistemas de integración y despliegue contínuo
+** Disminuir el uso de recursos
+
+== Virtualización
+
+* **Máquina Virtual (VM)** -> Emulación de una computadora que ejecuta programas como una computadora real
+** También llamado **Guest machine (Huesped)**
+* **Hypervisor** -> Software que corre sobre un host y administra VM's
+** Virtualiza un stack completo de hardware (CPU, red, almacenamiento)
+** **Hosted Hypervisor** -> Corre sobre un SO 
+** **Bare Metal Hypervisor** -> Corre directo sobre Hardware
+
+image::clase5/vm.png[Virtualización] 
+
+== Virtualización
+
+=== Beneficios
+
+* Un servidor físico puede ejecutar múltiples aplicaciones
+* Cada aplicación puede ser aislada en una VM
+* Más fácil de escalar
+
+=== Limitaciones
+
+* Cada VM requiere una asignación de:
+** CPU
+** Memoria
+** Almacenamiento
+** Un SO huesped
+* Mientras más VM, más recursos
+* Un SO huesped implica desperdicio de recursos
+* La portabilidad de aplicaciones no está garantizada
+
+== Virtualización
+
+image::clase5/vm2.png[Virtualización] 
+
+== Paravirtualización
+
+* Técnica de virtualización que presenta a las VM una interfase que es similar 
+(aunque no idéntica) a la interfase Hardware-Software subyacente
+* Permite al huesped y al host ejecutar tareas de manera transparente sin pasar
+por una capa de virtualización
+* El huesped debe estar preparado con la API de paravirtualización
+** Kernel
+** Drivers especiales
+
+== Contenerización
+
+* También llamado **Operating-system-level virtualization**
+* El kernel permite administrar la existencia de diversas instancias de *user-space*
+** Código ejecutado fuera del kernel de SO
+** Protección de memoria
+** Separación de privilegios
+* Diversas implementaciones
+** chroot
+** Jails
+** Zones
+
+== Historia de Docker
+
+* **2004** -> Se introduce la tecnología de Contenedores / Zonas Solaris
+* **2008** -> Se crean los primeros contenedores Linux (LXC)
+* **2013** -> Docker como proyecto interno en dotCloud
+* **Marzo 2013** -> Docker liberado como código abierto
+* **2016** -> Primera versión Docker Enterprise Edition
+* **Hoy** -> Amplia comunidad Open Source
+
+== Docker
+
+* Suite de herramientas que aprovechan servicios del kernel para crear y 
+administrar contenedores
+* **Contenedor** -> Abstracción que mediante diferntes herramientas permite 
+aislar un proceso
+** **Namespaces** -> Delimitan a los contenedores con una vista del sistema 
+subyacente (Stack de red, usuario, etc)
+** **CGroups** -> Característica del kernel que aisla, prioriza y administra el
+uso de recursos (CPU, I/O, Memoria, etc)
+** **Union File System** -> Sistema de archivos apilable donde archivos y directorios
+de diversos sistemas de archivos (conocidos como ramas) se pueden sobreponer de
+manera transparente para formar un sistema de archivos unificado
+
+== Arquitectura de Docker
+
+* Los contenedores comparten el kernel del host con otros contenedores
+
+image::clase5/docker1.png[Docker]
+
+== Contenedores vs. VM
+
+image::clase5/comparativo.png[Comparativo]
+
+== Arquitectura
+
+image::clase5/arquitectura.png[Arquitectura]
+
+== Persistencia y sistemas de archivos
+
+* **Copy on Write (COW)**
+** También conocido como **implicit sharing** o **shadowing**
+** Técnica de administración de recursos que permite implementar de manera
+eficiente el "copiado" o "duplicado" de recursos modificables.
+*** Si un recurso es duplicado sin modificarse, no es necesario crear un nuevo recurso
+*** El recurso se comparte entre la fuente original y la copia
+*** Al modificarse el recurso, se escribe finalmente la copia  
+
+== Persistencia y sistemas de archivos
+
+image::clase5/copy_write.png[Copy On Write]
+
+== El entorno docker
+
+* **Docker Engine** -> Entorno de ejecución que administra contenedores,
+imágenes, etc.
+** **Docker daemon** -> Corre en el host
+** **Docker Client** -> Se comunica con el demonio para ejecutar comandos
+** **API REST** -> Permite interactuar con el demonio de manera remota
+
+== El entorno docker
+
+* **Dockerfile** -> Contiene las instrucciones para crear una imagen Docker
+* **Docker Image** -> Plantilla de solo lectura construidas a partir de un Dockerfile
+y crean una representación estática de como se ejecutará un contenedor
+* **Volumes** -> Elementos que permiten persistir información, separados del UFS
+* **Docker Container** -> Instancias en ejecución de una imagen Docker
+** Empaquetado de software "invisible" con todo lo requerido para que una aplicación se 
+ejecute
+** Por defecto contiene una interface virtual de red y una IP asignada
+
+== El entorno docker
+
+* **Registry** -> Servicio centralizado que almacena, administra y distribuye imágenes Docker
+* **Docker compose** -> Herramienta que permite definir y ejecutar aplicaciones Docker multi-contenedor
+* **Swarm** -> Herramientas que permiten enlazar múltiples Docker Engines ubicados en diferentes hosts
+
+== Instalación
+
+* Descargar fuentes del curso: https://github.com/isidorotrevino/curso_ies
+* Copiar recetas Ansible ubicadas en **src/docs/asciidoc/clase5/instalacion**
+
+[source,python]  
+----
+#NO OLVIDAR VALIDAR VALORES DE ansible_hosts
+$ export ANSIBLE_CONFIG=$PWD/ansible.cfg 
+$ export ANSIBLE_INVENTORY=$PWD/ansible_hosts
+$ ansible-playbook playbooks/docker.yml
+----
+
+== Practica
+
+* Hola mundo
+[source,python]  
+----
+$ docker run hello-world
+----
+* Instalación de Contenedor Docker Nginx a través de Ansible
+[source,python]  
+----
+$ docker run --name mynginx2 -v /var/www:/usr/share/nginx/html:ro \
+-v /var/nginx/conf:/etc/nginx:ro -P -d nginx
+----
+
+* Instalación de Contenedor Docker Mayan EDMS a través de Ansible
+** http://docs.mayan-edms.com/en/stable/topics/docker.html#docker
+
+////
+
+== Redes
+
+== Docker Compose
+
+== Práctica
 
 https://medium.freecodecamp.org/a-beginner-friendly-introduction-to-containers-vms-and-docker-79a9e3e119b
 
@@ -24,3 +293,4 @@ https://en.wikipedia.org/wiki/Virtual_network_interface
 
 https://linuxconfig.org/configuring-virtual-network-interfaces-in-linux
 
+////

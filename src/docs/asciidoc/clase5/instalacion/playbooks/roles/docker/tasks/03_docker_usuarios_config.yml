@@ -1,0 +1,103 @@
+---
+#CREAMOS UN GRUPO PARA EJECUCIÓN DE DOCKER
+- name: Creación de grupos docker
+  become: true
+  group: 
+    name: "{{item['name']}}"
+    gid: "{{item['gid']}}" 
+    state: present
+  with_items:
+    - name: "{{docker_group}}"
+      gid: "{{docker_gid}}"  
+      
+#    - name: "{{root_ns_group}}"
+#      gid: "{{root_ns_gid}}"
+#    - name: "{{docker_ns_group}}"
+#      gid: "{{docker_ns_gid}}"
+
+ 
+#CREAMOS UN USUARIO ESPECIAL PARA DOCKER
+- name: Creación de usuarios docker
+  become: true
+  user: 
+    name: "{{item['name']}}" 
+    uid: "{{item['uid']}}"
+    group: "{{item['group']}}"
+    state: present
+  with_items:
+    - name: "{{docker_user}}"
+      group: "{{docker_user}}"
+      uid: "{{docker_uid}}"
+  
+#    - name: "{{root_ns_group}}"
+#      group: "{{root_ns_group}}"
+#      uid: "{{root_ns_gid}}"
+#    - name: "{{docker_ns_group}}"
+#      group: "{{docker_ns_group}}"
+#      uid: "{{docker_ns_gid}}"
+
+#- name: Edición de archivos de namespace
+#  become: true
+#  lineinfile:
+#    path: "{{item['path']}}"
+#    state: present
+#    line: "{{item['line']}}"
+#  with_items:
+#    - path: /etc/subuid
+#      line: ns1:500000:65536
+#    - path: /etc/subgid
+#      line: docker:500000:65536
+  
+- name: Se agrega usuario ubuntu al grupo docker
+  become: true
+  user: 
+    name: "{{ubuntu_user}}" 
+    groups: "{{docker_group}}" 
+    append: yes
+
+- name: Se agrega usuario root al grupo docker
+  become: true
+  user: 
+    name: "{{root_user}}" 
+    groups: docker 
+    append: yes
+
+- name: Copia de variable de ambiente docker
+  become: true
+  copy: 
+    src: default_docker
+    dest: /etc/default/docker
+    owner: "{{root_user}}"
+    mode: 0644
+
+- name: Creación de directorio de configuración de docker
+  become: true
+  file:
+    state: directory
+    path: "{{docker_config}}"
+    owner: "{{root_user}}"
+    mode: "0700"
+    
+- name: Copia de configuración de docker
+  become: true
+  template: 
+    src: daemon.json
+    dest: "{{docker_config}}/daemon.json"
+    owner: "{{root_user}}"
+    mode: "0400"
+    
+- name: Creación de directorio systemd de docker
+  become: true
+  file:
+    state: directory
+    path: /etc/systemd/system/docker.service.d/
+    owner: "{{root_user}}"
+    mode: "0700"    
+
+- name: Copia de configuración SystemD docker
+  become: true
+  copy: 
+    src: docker.service
+    dest: /etc/systemd/system/docker.service.d/docker.conf
+    owner: "{{root_user}}"
+    mode: 0644    

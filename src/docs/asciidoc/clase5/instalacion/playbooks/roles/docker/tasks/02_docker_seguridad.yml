@@ -1,0 +1,150 @@
+---
+
+#CREAMOS UNA LLAVE PRIVADA PARA NUESTRO CA
+- name: Generación de llave privada para CA
+  become: true
+  openssl_privatekey:
+    path: "{{docker_config}}/ca-key.pem"
+    cipher: aes256
+    passphrase: "{{docker_passphrase}}"
+    mode: 0400
+
+#COPIAMOS ARCHIVOS DE EXTENSIONES SSL AL GUEST (CON PERMISO DE ROOT)     
+- name: Creación de archivo de extensiones para certificados
+  become: true
+  template:
+    src: "{{item}}"
+    dest: "{{docker_config}}/{{item}}"
+    owner: "{{root_user}}"
+    mode: "0400"     
+  with_items:
+    - ca.ext
+    - client.ext
+    - server.ext    
+   
+#GENERAMOS DIRECTAMENTE NUESTRO CERTIFICADO RAIZ PARA CA
+- name: Generación de Certificado para CA
+  become: true
+  shell: 'openssl req -new -x509 -days 3650 -config ca.ext -key ca-key.pem -sha256 -extensions v3_req -out ca.pem -passin pass:{{docker_passphrase}}'
+  args:
+    chdir:  "{{docker_config}}"
+    creates: ca.pem
+
+#GENERAMOS UNA LLAVE PRIVADA QUE SERÁ USADA POR DOCKER DAEMON 
+- name: Generación de llave privada para Servidor
+  become: true
+  openssl_privatekey:
+    path: "{{docker_config}}/server-key.pem"
+    size: 4096
+    mode: 0400
+
+#CREAMOS UN CERTIFICATE SIGNING REQUEST PARA QUE EL CA NOS GENERE UN 
+#CERTIFICADO PARA DOCKER DAEMON
+- name: Generación de CSR para Servidor
+  become: true
+  openssl_csr:
+    path: "{{docker_config}}/server.csr"
+    privatekey_path: "{{docker_config}}/server-key.pem"
+    digest: sha256
+    country_name: MX
+    state_or_province_name: CDMX
+    locality_name: CDMX
+    organization_name: Vintecdyne
+    organizational_unit_name: IT
+    email_address: ventas@vintec.mx
+    common_name: "{{docker_hostname}}"
+    subject_alt_name: "DNS:*.vintec.mx,IP:127.0.0.1,IP:{{ansible_all_ipv4_addresses|join(',IP:')}}"
+    extendedKeyUsage: "serverAuth" 
+
+#CREAMOS EL CERTIFICADO    
+- name: Generación de certificado para Servidor
+  become: true
+  shell: 'openssl x509 -req -days 3650 -sha256 -in server.csr -CA ca.pem -CAkey ca-key.pem \
+     -CAcreateserial -extensions v3_req -extfile server.ext  -out server-cert.pem -passin pass:{{docker_passphrase}}'
+  args:
+    chdir:  "{{docker_config}}"
+    creates: server-cert.pem
+
+#AHORA CREAMOS UNA LLAVE PRIVADA PARA QUE EL DOCKER CLIENT
+#SE PUEDA COMUNICAR CON EL DAEMON
+- name: Generación de llave privada para Cliente
+  become: true
+  openssl_privatekey:
+    path: "{{docker_config}}/key.pem"
+    size: 4096   
+    mode: 0400
+
+#CREAMOS EL CSR PARA QUE EL CA NOS GENERE EL CERTIFICADO    
+- name: Generación de CSR para Cliente
+  become: true
+  openssl_csr:
+    path: "{{docker_config}}/client.csr"
+    privatekey_path: "{{docker_config}}/key.pem"
+    subject: "/CN=client"
+    extendedKeyUsage: "clientAuth"
+    digest: sha256
+
+#CREAMOS Y FIRMAMOS EL CERTIFICADO
+- name: Generación de certificado para Cliente
+  become: true
+  shell: 'openssl x509 -req -days 3650 -sha256 -in client.csr -CA ca.pem -CAkey ca-key.pem \
+     -CAcreateserial -extensions v3_req -extfile client.ext -out cert.pem -passin pass:{{docker_passphrase}}'
+  args:
+    chdir:  "{{docker_config}}"
+    creates: cert.pem
+
+#AJUSTAMOS PERMISOS                
+- name: Cambio de permisos para certificados
+  become: true
+  file:
+    path: "{{item}}"
+    mode: 0444
+  with_items:
+    - "{{docker_config}}/server-cert.pem"
+    - "{{docker_config}}/cert.pem"
+    
+- name: Creación de directorios locales para usuario
+  become: true
+  file:     
+    path: "/home/{{item}}/.docker"
+    state: directory
+    mode: 0700
+    owner: "{{item}}"
+  with_items:
+    - "{{ubuntu_user}}"
+#    - "{{docker_user}}"
+     
+- name: Copia de certificados de cliente
+  become: true
+  copy:
+    remote_src: true
+    src: "{{docker_config}}/{{item[0]}}"
+    dest: "/home/{{item[1]}}/.docker"
+    mode: 0400
+    owner: "{{item[1]}}"
+  loop: "{{ lookup('nested', [ 'key.pem', 'cert.pem','ca.pem' ], [ '{{ubuntu_user}}' ]) }}"  
+#  loop: "{{ lookup('nested', [ 'key.pem', 'cert.pem','ca.pem' ], [ '{{ubuntu_user}}', '{{docker_user}}' ]) }}"
+  
+- name: Agregamos variables de ambiente para uso de TLS en docker
+  become: true
+  lineinfile:
+    path: /etc/environment
+    state: present
+    line: "{{item}}"
+  with_items:
+    - DOCKER_TLS_VERIFY=1
+    - "DOCKER_HOST=tcp://{{ansible_default_ipv4.address}}:2376"
+    
+- name: Eliminación de archivos sobrantes
+  become: true
+  file: 
+    path: "{{docker_config}}/{{item}}"
+    state: absent
+  with_items:
+    - ca.ext
+    - ca.csr
+    - ca.srl
+    - client.csr
+    - client.ext
+    - server.csr
+    - server.ext     

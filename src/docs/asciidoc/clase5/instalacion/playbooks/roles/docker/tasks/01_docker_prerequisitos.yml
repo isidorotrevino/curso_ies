@@ -1,0 +1,57 @@
+---
+- name: Obtención de usuario ubuntu
+  shell: "echo $(whoami)"  
+  register: usuario_ubuntu
+  tags:
+    - always
+
+#GUARDAMOS UNA VARIABLE ANSIBLE QUE CONTENGA EL NOMBRE DE LA VERSIÓN DE UBUNTU
+#QUE VAMOS A ESTAR TRABAJANDO
+- name: Obtención de Release de ubuntu
+  shell: "echo $(lsb_release -cs)"  
+  register: version_ubuntu
+
+#INSTALAMOS ALGUNOS PAQUETES QUE SON NECESARIAS PARA LA CORRECTA EJECUCIÓN
+#DE DOCKER   
+- name: Instalación de paquetes APT requeridos por docker
+  become: true
+  apt:
+    name: "{{ item }}"
+    state: latest
+    update_cache: yes
+  with_items:
+      - apt-transport-https
+      - ca-certificates
+      - curl
+      - software-properties-common
+      - python-pip
+
+#ESTE MÓDULO NOS PERMITIRÁ CREAR LAS LLAVES SSL NECESARIAS A TRAVÉS DE ANSIBLE
+- name: Instalación de módulos PIP requeridos por docker
+  become: true      
+  pip:
+    name: pyOpenSSL
+
+#COMO DESCARGAMOS DOCKER DE UN REPOSITORIO EXTERNO A LOS ESTÁNDARES DE UBUNTU
+# NECESITAMOS OTORGARLE CONOCIMIENTO DE LA LLAVE GPG DEL MISMO PARA GARANTIZAR
+# QUE NO DESCARGUEMOS PAQUETES FALSOS      
+- name: Se agrega llave GPG
+  become: true
+  apt_key: 
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+    
+#AGREGAMOS EL REPOSITORIO EXTERNO DE DOCKER AL SISTEMA APT DE NUESTRO SO
+- name: Se agrega repositorio Docker
+  become: true
+  apt_repository:
+    repo: deb [arch=amd64] https://download.docker.com/linux/ubuntu {{version_ubuntu.stdout}} stable
+    state: present
+    filename: docker
+    update_cache: true
+    
+- name: Creamos directorio de configuraciones
+  become: true
+  file:
+    path: "{{docker_config}}"
+    state: directory     

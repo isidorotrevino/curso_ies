@@ -1,0 +1,24 @@
+---
+docker_passphrase: test_docker_curso
+docker_config: /etc/docker
+docker_data_base_path: /docker_data
+docker_host: tcp://127.0.0.1:2376
+docker_hostname: docker
+docker_tls_hostname: 127.0.0.1     
+docker_data_dir: "{{docker_data_base_path}}/docker"
+docker_cert_date: 2212312359Z
+root_user: root
+root_uid: 0
+root_ns_group: docker-root
+root_ns_gid: 500000  
+docker_user: docker
+docker_group: docker
+docker_uid: 5000
+docker_gid: 1005
+docker_ns_group: docker-docker
+docker_ns_gid: 501000
+ubuntu_user: "{{usuario_ubuntu.stdout}}"
+ubuntu_uid: 1000
+ubuntu_gid: 1000
+docker_port: 2376
+tmp_path: /tmp

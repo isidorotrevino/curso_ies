@@ -1,0 +1,16 @@
+[req]
+distinguished_name = req_distinguished_name
+req_extensions = v3_req
+prompt = no
+[req_distinguished_name]
+C = MX
+ST = Mexico
+L = CDMX
+O = VintecDyne
+OU = IT
+CN = vintec.mx
+[v3_req]
+subjectKeyIdentifier = hash
+extendedKeyUsage = critical,serverAuth, clientAuth
+basicConstraints = CA:true
+keyUsage = cRLSign, keyCertSign, digitalSignature, nonRepudiation,keyEncipherment, dataEncipherment, keyAgreement, keyCertSign, cRLSign

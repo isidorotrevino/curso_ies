@@ -1,0 +1,10 @@
+[ v3_req ]
+subjectAltName=@alt_names
+extendedKeyUsage=serverAuth
+[alt_names]
+DNS.1 = vintec.mx
+DNS.2 = *.vintec.mx
+IP.1 = 127.0.0.1
+{% for item in ansible_all_ipv4_addresses %}
+IP.{{(loop.index+1)}} = {{item}}
+{% endfor %}

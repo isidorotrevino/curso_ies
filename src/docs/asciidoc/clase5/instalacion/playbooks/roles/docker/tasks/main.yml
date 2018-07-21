@@ -1,0 +1,13 @@
+
+- include: 01_docker_prerequisitos.yml
+  tags:
+    - prerequisitos
+- include: 02_docker_seguridad.yml
+  tags:
+    - seguridad
+- include: 03_docker_usuarios_config.yml
+  tags:
+    - usuarios
+- include: 04_docker_instalacion.yml
+  tags:
+    - instalacion
